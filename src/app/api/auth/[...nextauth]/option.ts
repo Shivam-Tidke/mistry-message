@@ -28,16 +28,16 @@ export const authOptions: NextAuthOptions = {
                         throw new Error('No user found with this email')
                     }
 
-                    if(!user.isVerified){
+                    if (!user.isVerified) {
                         throw new Error('Please verify your accout before login')
                     }
 
-                    const isPasswordCorrect =  await  bcrypt.compare(credentials.password, user.password)
+                    const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password)
 
                     if (!isPasswordCorrect) {
                         return user
-                    }else{
-                        throw new Error ("Incorrect password")
+                    } else {
+                        throw new Error("Incorrect password")
                     }
 
                 } catch (err: any) {
@@ -45,6 +45,36 @@ export const authOptions: NextAuthOptions = {
                 }
             }
         })
-    ]
+    ],
+    callbacks: {
+
+        async jwt({ token, user }) {
+            if (user) {
+                token._id = user._id?.toString()
+                token.isVarified = user.isVerified;
+                token.isAcceptingMessage = user.isAcceptingMessages;
+                token.username = user.username;
+            }
+            return token
+        },
+        async session({ session, token }) {
+             if(token){
+                session.user._id = token._id
+                session.user.isVerified = token.isVerified
+                session.user.isAcceptingMessages = token.isAcceptingMessages
+                session.user.username = token.username
+             }
+
+            return session
+        }
+
+    },
+    pages: {
+        signIn: '/sign-in'
+    },
+    session: {
+        strategy: "jwt"
+    },
+    secret: process.env.NEXTAUTH_SECRET,
 
 }
