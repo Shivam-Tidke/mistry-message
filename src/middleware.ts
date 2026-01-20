@@ -1,56 +1,41 @@
-// import { withAuth } from "next-auth/middleware"
-// import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
+import { getToken } from "next-auth/jwt"
 
-// export default withAuth(function middleware(req) {
-//   const token = req.nextauth.token
-//   const { pathname } = req.nextUrl
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
 
-//   // ❌ Guest trying to access dashboard
-//   if (!token && pathname.startsWith("/dashboard")) {
-//     return NextResponse.redirect(new URL("/sign-in", req.url))
-//   }
+  // ✅ Allow NextAuth internal routes
+  if (pathname.startsWith("/api/auth")) {
+    return NextResponse.next()
+  }
 
-//   // ❌ Logged-in user trying to access auth pages
-//   if (
-//     token &&
-//     (pathname === "/sign-in" ||
-//       pathname === "/sign-up" ||
-//       pathname.startsWith("/verify"))
-//   ) {
-//     return NextResponse.redirect(new URL("/dashboard", req.url))
-//   }
+  const token = await getToken({ req: request })
 
-//   return NextResponse.next()
-// })
-
-// export const config = {
-//   matcher: [
-//     "/",
-//     "/sign-in",
-//     "/sign-up",
-//     "/verify/:path*",
-//     "/dashboard/:path*",
-//   ],
-// }
-
-import { withAuth } from "next-auth/middleware"
-import { NextResponse } from "next/server"
-
-export default withAuth(function middleware(req) {
-  const token = req.nextauth.token
-  console.log("Token:", token)
-
-  const { pathname } = req.nextUrl
-
-  // ❌ Not logged in → protect dashboard only
+  // ❌ Guest accessing dashboard
   if (!token && pathname.startsWith("/dashboard")) {
-    return NextResponse.redirect(new URL("/sign-in", req.url))
+    return NextResponse.redirect(new URL("/sign-in", request.url))
+  }
+
+  // ❌ Logged-in user accessing auth pages
+  if (
+    token &&
+    (pathname === "/sign-in" ||
+      pathname === "/sign-up" ||
+      pathname.startsWith("/verify") ||
+      pathname === "/")
+  ) {
+    return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
   return NextResponse.next()
-})
-
-export const config = {
-  matcher: ["/dashboard/:path*"],
 }
 
+export const config = {
+  matcher: [
+    "/dashboard/:path*",
+    "/sign-in",
+    "/sign-up",
+    "/verify/:path*",
+    "/",
+  ],
+}

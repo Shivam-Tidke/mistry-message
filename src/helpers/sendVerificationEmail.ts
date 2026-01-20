@@ -2,7 +2,7 @@ import VerificationEmail from "@/emails/VerificationEmail";
 import { resend } from "../lib/resend";
 import { ApiResponse } from "../types/ApiResponse";
 
-export async function snedVerificationEmail(email:string, username:string, verifyCode: string) :Promise<ApiResponse> {
+export async function sendVerificationEmail(email:string, username:string, verifyCode: string) :Promise<ApiResponse> {
     
     try {
         const { data, error } = await resend.emails.send({
