@@ -6,3 +6,5 @@ import { Message } from "../model/User";
     isAcceptingMessages?: boolean;
     messages ? : Array<Message>;
  }
+
+ 
